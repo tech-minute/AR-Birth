@@ -164,11 +164,11 @@ class _NeobrutalistButtonState extends State<NeobrutalistButton> {
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: () {
         setState(() => _isPressed = false);
         widget.onTap();
       },
-      onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 70),
         curve: Curves.easeIn,
