@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBirth: กายวิภาคศาสตร์และกลไกการคลอดทางคลินิก</title>
+  <!-- Google Fonts for cute rounded typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons via CDN for modern UI iconography -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="light-theme">
+  <!-- Game Splash Screen -->
+  <div id="splash-screen" class="splash-overlay">
+    <div class="splash-content glass-panel">
+      <div class="splash-logo">
+        <img src="https://img.icons8.com/color/256/pregnant.png" alt="🤰" class="splash-icon-main">
+        <h1>SmartBirth Quest</h1>
+        <p class="splash-subtitle">โปรแกรมเตรียมความพร้อมสูติศาสตร์ปฏิบัติการ Pre-VR 🤰🎓</p>
+      </div>
+
+      <div class="splash-loading-container" id="splash-loading-box">
+        <div class="progress-bar-wrapper" style="width: 250px; height: 16px; margin: 0 auto 0.75rem;">
+          <div id="splash-progress-bar" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <span id="splash-loading-text" style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 800; color: var(--text-secondary);">กำลังจำลองโมเดลห้องคลอด... 0%</span>
+      </div>
+
+      <button id="btn-start-quest" class="btn-icon-text primary hidden" style="padding: 0.9rem 2.2rem; font-size: 1.15rem; border-radius: var(--radius-md);">
+        <span>🚀 เริ่มทำเควสฝึกฝน</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Floating Coin Animations & Mascot Containers -->
+    <div id="floating-coins-container" class="floating-coins-layer"></div>
+    <div id="mascot-container" class="mascot-widget"></div>
+
+    <header class="app-header">
+      <div class="header-logo">
+        <i data-lucide="shield-check" class="logo-icon"></i>
+        <div>
+          <h1>SmartBirth Quest</h1>
+          <p class="subtitle">เตรียมความพร้อมสู่ห้องปฏิบัติการจำลองเสมือนจริง Pre-VR</p>
+        </div>
+      </div>
+      
+      <div class="header-status">
+        <!-- Game rewards widgets -->
+        <div class="game-badge-group">
+          <div class="game-badge xp-badge" title="คะแนนประสบการณ์">
+            <span class="game-badge-icon">⭐</span>
+            <span id="header-xp">0</span>
+            <span class="badge-lbl">XP</span>
+          </div>
+          <div class="game-badge coins-badge" id="coins-target-anchor" title="เหรียญทองสำหรับเรียนรู้">
+            <span class="game-badge-icon pulse">🪙</span>
+            <span id="header-coins">0</span>
+          </div>
+        </div>
+
+        <div class="badge-progress-container">
+          <span class="progress-label">ภารกิจ:</span>
+          <div class="progress-bar-wrapper">
+            <div id="global-progress-bar" class="progress-bar" style="width: 0%"></div>
+          </div>
+          <span id="global-progress-text" class="progress-percent">0%</span>
+        </div>
+        
+        <button id="btn-toggle-sound" class="btn-icon-circle" title="เปิด/ปิดเสียง">
+          <i data-lucide="volume-2"></i>
+        </button>
+
+        <button id="btn-toggle-theme" class="btn-icon-circle" title="สลับธีมสี (ชมพูครีม / ฟ้าน่ารัก)">
+          <i data-lucide="palette"></i>
+        </button>
+
+        <button id="btn-reset-progress" class="btn-icon-text secondary" title="รีเซ็ตความก้าวหน้าทั้งหมด">
+          <i data-lucide="rotate-ccw"></i>
+          <span>รีเซ็ต</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div id="app-viewport">
+        <!-- Rendered component will mount here -->
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 ห้องปฏิบัติการจำลอง SmartBirth. พัฒนาขึ้นเพื่อการศึกษาทางคลินิกและการเตรียมพร้อมฝึกฝนด้วย VR</p>
+      <div class="footer-links">
+        <a href="#" id="link-help"><i data-lucide="help-circle"></i> ช่วยเหลือแบบเร็ว</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Help Overlay Modal -->
+  <div id="help-modal" class="modal-overlay hidden">
+    <div class="modal-content glass-panel">
+      <button class="modal-close" id="btn-close-help"><i data-lucide="x"></i></button>
+      <h2><i data-lucide="info"></i> คู่มือการใช้งาน SmartBirth</h2>
+      <div class="modal-body">
+        <p>ยินดีต้อนรับสู่ <strong>SmartBirth</strong> เครื่องมือทบทวนและเตรียมความพร้อมก่อนเข้าใช้ห้องปฏิบัติการจำลอง VR โปรดปฏิบัติตามเส้นทางการเรียนรู้เพื่อปลดล็อกและทำภารกิจให้ครบทุกขั้นตอนดังนี้:</p>
+        <ul>
+          <li><strong>ด่านที่ 1 (Anatomy Master)</strong>: ทบทวน Flashcards อุปกรณ์และเครื่องมือทำคลอดทางคลินิก และติ๊กเลือกเช็คลิสต์เครื่องมือให้ครบ</li>
+          <li><strong>ด่านที่ 2 (Mechanism Pro)</strong>: เรียนรู้กลไกการคลอดทั้ง 7 ขั้นตอนผ่านแบบจำลอง 3 มิติเชิงโต้ตอบ สามารถใช้นิ้วลากเพื่อหมุนมุมมอง และปรับแถบสไลด์เพื่อดูการเคลื่อนตัวของทารกตามลำดับ</li>
+          <li><strong>ด่านที่ 3 (AR Home-Lab)</strong>: จำลองการทำงานแบบ AR ด้วยกล้องของอุปกรณ์ ปรับเทียบพื้นที่ราบบนโต๊ะ และเรียนรู้แนวทางปฏิบัติการวางมือ (Ritgen Maneuver)</li>
+          <li><strong>ด่านที่ 4 (Finger Quiz)</strong>: ฝึกกางนิ้วสัมผัสปากมดลูก (Dilation) ขนาด 1-10 ซม. เพื่อความแม่นยำทางประสาทสัมผัสกล้ามเนื้อ พร้อมระบบการสั่นและภาพเหรียญสิบบาทเปรียบเทียบ</li>
+          <li><strong>ด่านที่ 5 (Decision Quiz)</strong>: ทดสอบความรู้เรื่องการจัดเรียงลำดับขั้นตอนกลไกการคลอดทารก</li>
+          <li><strong>VR Ready Badge</strong>: รับเหรียญตราดิจิทัลและพิมพ์ใบประกาศนียบัตรเมื่อทำสำเร็จครบถ้วน</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

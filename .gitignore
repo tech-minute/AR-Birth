@@ -1,0 +1,37 @@
+# Node dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor & OS files
+.idea/
+.vscode/
+*.suo
+*.ntvsca
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Flutter/Dart build files
+smartbirth_mobile/.dart_tool/
+smartbirth_mobile/.flutter-plugins
+smartbirth_mobile/.flutter-plugins-dependencies
+smartbirth_mobile/.packages
+smartbirth_mobile/build/
+smartbirth_mobile/smartbirth_mobile.iml
+smartbirth_mobile/android/local.properties
+smartbirth_mobile/ios/Flutter/Generated.xcconfig
+smartbirth_mobile/ios/Flutter/flutter_export_environment.sh
+
+# Temporary download files
+*.zip
+*.tar.gz
