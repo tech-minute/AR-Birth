@@ -121,13 +121,13 @@ class SmartBirthStateNotifier extends StateNotifier<SmartBirthState> {
 
   void updateDilationScore(int score) {
     if (score > state.dilationHighScore) {
-      state.copyWith(dilationHighScore: score);
+      state = state.copyWith(dilationHighScore: score);
     }
   }
 
   void updateQuizScore(int score) {
     if (score > state.quizHighScore) {
-      state.copyWith(quizHighScore: score);
+      state = state.copyWith(quizHighScore: score);
     }
   }
 

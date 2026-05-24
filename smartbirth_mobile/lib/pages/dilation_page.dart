@@ -97,9 +97,17 @@ class _DilationPageState extends ConsumerState<DilationPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        final colors = Theme.of(context).extension<SmartBirthColors>() ?? warmColors;
         return AlertDialog(
-          title: const Text('🌟 เควสสำเร็จ!', style: TextStyle(fontWeight: FontWeight.w900)),
-          content: const Text('คุณประเมินระดับการกางนิ้วสัมผัสปากมดลูกได้ครบถ้วน ถูกต้องตามระยะและเกณฑ์มาตรฐาน'),
+          backgroundColor: colors.bgSecondary,
+          title: Text(
+            '🌟 เควสสำเร็จ!',
+            style: TextStyle(fontWeight: FontWeight.w900, color: colors.chocolateBrown),
+          ),
+          content: Text(
+            'คุณประเมินระดับการกางนิ้วสัมผัสปากมดลูกได้ครบถ้วน ถูกต้องตามระยะและเกณฑ์มาตรฐาน',
+            style: TextStyle(color: colors.chocolateBrown, fontWeight: FontWeight.bold),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -108,7 +116,10 @@ class _DilationPageState extends ConsumerState<DilationPage> {
                 Navigator.pop(context);
                 context.go('/dashboard');
               },
-              child: const Text('ตกลงกลับบอร์ดเกม'),
+              child: Text(
+                'ตกลงกลับบอร์ดเกม',
+                style: TextStyle(color: colors.primaryPink, fontWeight: FontWeight.w900),
+              ),
             ),
           ],
         );
@@ -140,143 +151,178 @@ class _DilationPageState extends ConsumerState<DilationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(smartBirthStateProvider);
+    final colors = Theme.of(context).extension<SmartBirthColors>() ?? warmColors;
     final targetCm = _targets[_currentTargetIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ด่านที่ 4: เควสประเมินกางนิ้วสัมผัส', style: TextStyle(fontWeight: FontWeight.w900)),
-        backgroundColor: kBgSecondary,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                NeobrutalistButton(
-                  onTap: () => context.go('/dashboard'),
-                  child: const Text('🏠 กลับหน้าหลัก'),
-                ),
-                Text(
-                  'เป้าหมาย: $targetCm ซม.',
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: kPrimaryPink, fontSize: 16),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+    final headerTextSection = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ด่านที่ 4: แบบทดสอบกางนิ้วสัมผัสปากมดลูกจำลอง 🖐️',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: colors.chocolateBrown,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'วางนิ้วชี้และนิ้วกลางลงบนหน้าจอแล้วกางออก (ลากจุดสัมผัสสีส้มสองจุด) เพื่อจำลองและประเมินปากมดลูกเป้าหมาย',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: colors.textSecondary,
+          ),
+        ),
+      ],
+    );
 
-            // Dilation Multitouch Panel Area
-            NeobrutalistCard(
-              padding: 0,
-              child: Container(
-                height: 340,
-                width: double.infinity,
-                color: kBgPrimary,
-                child: Listener(
-                  onPointerDown: (event) {
-                    if (_p1 == null) {
-                      setState(() => _p1 = event.localPosition);
-                    } else if (_p2 == null) {
-                      setState(() {
-                        _p2 = event.localPosition;
-                        _calculateDistance();
-                      });
-                    }
-                  },
-                  onPointerMove: (event) {
-                    // Update whichever finger moves nearest
-                    if (_p1 != null && _p2 != null) {
-                      final dist1 = (event.localPosition - _p1!).distance;
-                      final dist2 = (event.localPosition - _p2!).distance;
-                      if (dist1 < dist2) {
-                        setState(() {
-                          _p1 = event.localPosition;
-                          _calculateDistance();
-                        });
-                      } else {
-                        setState(() {
-                          _p2 = event.localPosition;
-                          _calculateDistance();
-                        });
-                      }
-                    }
-                  },
-                  onPointerUp: (event) {
-                    setState(() {
-                      _p1 = null;
-                      _p2 = null;
-                      _measuredCm = 0.0;
-                    });
-                  },
-                  child: Stack(
+    // Concurrency / Multitouch Canvas Panel
+    final touchCanvasPanel = NeobrutalistCard(
+      padding: 0,
+      child: Container(
+        height: 360,
+        color: colors.bgPrimary,
+        child: Listener(
+          onPointerDown: (event) {
+            if (_p1 == null) {
+              setState(() => _p1 = event.localPosition);
+            } else if (_p2 == null) {
+              setState(() {
+                _p2 = event.localPosition;
+                _calculateDistance();
+              });
+            }
+          },
+          onPointerMove: (event) {
+            if (_p1 != null && _p2 != null) {
+              final dist1 = (event.localPosition - _p1!).distance;
+              final dist2 = (event.localPosition - _p2!).distance;
+              if (dist1 < dist2) {
+                setState(() {
+                  _p1 = event.localPosition;
+                  _calculateDistance();
+                });
+              } else {
+                setState(() {
+                  _p2 = event.localPosition;
+                  _calculateDistance();
+                });
+              }
+            }
+          },
+          onPointerUp: (event) {
+            setState(() {
+              _p1 = null;
+              _p2 = null;
+              _measuredCm = 0.0;
+            });
+          },
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: const Size(double.infinity, double.infinity),
+                painter: CervixCanvasPainter(
+                  measuredCm: _measuredCm,
+                  targetCm: targetCm,
+                  p1: _p1,
+                  p2: _p2,
+                  isMatched: _isMatched,
+                  colors: colors,
+                ),
+              ),
+
+              // Left Dilation Readout
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colors.bgSecondary,
+                    border: Border.all(color: colors.chocolateBrown, width: 2.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Cervix simulation canvas drawing
-                      CustomPaint(
-                        size: const Size(double.infinity, double.infinity),
-                        painter: CervixCanvasPainter(
-                          measuredCm: _measuredCm,
-                          targetCm: targetCm,
-                          p1: _p1,
-                          p2: _p2,
-                          isMatched: _isMatched,
+                      Text(
+                        'ขนาดเปิดที่กางได้',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: colors.textSecondary,
                         ),
                       ),
+                      const SizedBox(height: 2),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            _measuredCm.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              color: colors.chocolateBrown,
+                              fontFamily: 'Courier New',
+                            ),
+                          ),
+                          Text(
+                            ' ซม.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: colors.chocolateBrown,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-                      // Dilation readouts widget
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: kBgSecondary,
-                            border: Border.all(color: kChocolateBrown, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('ปากมดลูกเปิด', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                              Text(
-                                '${_measuredCm.toStringAsFixed(1)} ซม.',
-                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'Courier New'),
-                              ),
-                            ],
-                          ),
+              // Right Lock Target State
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colors.bgSecondary,
+                    border: Border.all(color: colors.chocolateBrown, width: 2.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'กางนิ้วค้างไว้: ${(_holdingPercentage * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: colors.textSecondary,
                         ),
                       ),
-
-                      // Dilation Target progress widget
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: kBgSecondary,
-                            border: Border.all(color: kChocolateBrown, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('ล็อกค้างไว้: ${(_holdingPercentage * 100).toInt()}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 4),
-                              Container(
-                                width: 80,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                alignment: Alignment.centerLeft,
-                                child: FractionallySizedBox(
-                                  widthFactor: _holdingPercentage,
-                                  child: Container(color: kSuccessGreen),
-                                ),
-                              ),
-                            ],
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 90,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: colors.bgTertiary,
+                          border: Border.all(color: colors.chocolateBrown, width: 1.5),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: _holdingPercentage,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colors.successGreen,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
                           ),
                         ),
                       ),
@@ -284,37 +330,200 @@ class _DilationPageState extends ConsumerState<DilationPage> {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Progress badges bar
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Right Sidebar / Instructions
+    final sidebarPanel = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Target progress badges
+        NeobrutalistCard(
+          backgroundColor: colors.bgSecondary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '🏆 ความก้าวหน้าเป้าหมาย',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: colors.chocolateBrown),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'ฝึกกางนิ้วมือให้ตรงกับระยะเป้าหมายทั้ง 4 ขนาด:',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: _targets.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final val = entry.value;
+                  final isDone = idx < _currentTargetIndex;
+                  final isActive = idx == _currentTargetIndex;
+
+                  Color itemBg = colors.bgSecondary;
+                  Color itemText = colors.textSecondary;
+
+                  if (isDone) {
+                    itemBg = colors.successGreen;
+                    itemText = Colors.white;
+                  } else if (isActive) {
+                    itemBg = colors.primaryPink;
+                    itemText = Colors.white;
+                  }
+
+                  return Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: itemBg,
+                        border: Border.all(color: colors.chocolateBrown, width: 2.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$val ซม.',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          color: itemText,
+                          fontFamily: 'Courier New',
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Visual eye reference list
+        NeobrutalistCard(
+          backgroundColor: colors.bgTertiary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '🔍 เกณฑ์เปรียบเทียบระยะเปิดด้วยสายตา',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: colors.chocolateBrown),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'จำลองความรู้สึกและขนาดเปรียบเทียบเทียบ:',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              _buildRefRow('⚫', '1 ซม. (เม็ดซีเรียลกลมเล็ก)', colors),
+              const SizedBox(height: 8),
+              _buildRefRow('🪙', '3 ซม. (ขนาดเหรียญ 10 บาท)', colors),
+              const SizedBox(height: 8),
+              _buildRefRow('🍋', '5 ซม. (มะนาวฝานซีก)', colors),
+              const SizedBox(height: 8),
+              _buildRefRow('🥫', '8 ซม. (ขอบปากกระป๋องน้ำ)', colors),
+              const SizedBox(height: 8),
+              _buildRefRow('🥯', '10 ซม. (ขนมปังเบเกิล / เปิดหมด)', colors),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ด่านที่ 4: เควสประเมินกางนิ้วสัมผัส', style: TextStyle(fontWeight: FontWeight.w900)),
+        backgroundColor: colors.bgSecondary,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _targets.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final val = entry.value;
-                final isDone = idx < _currentTargetIndex;
-                final isActive = idx == _currentTargetIndex;
-                
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isDone ? kSuccessGreen : (isActive ? kPrimaryPink : kBgSecondary),
-                    border: Border.all(color: kChocolateBrown, width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              children: [
+                NeobrutalistButton(
+                  onTap: () => context.go('/dashboard'),
                   child: Text(
-                    '$val ซม.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: (isDone || isActive) ? Colors.white : kTextSecondary,
-                    ),
+                    '🏠 กลับหน้าหลัก',
+                    style: TextStyle(fontWeight: FontWeight.w900, color: colors.chocolateBrown),
                   ),
-                );
-              }).toList(),
+                ),
+                Text(
+                  'เป้าหมาย: $targetCm ซม.',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: colors.primaryPink,
+                    fontSize: 18,
+                    fontFamily: 'Courier New',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            headerTextSection,
+            const SizedBox(height: 24),
+
+            ResponsiveLayout(
+              mobile: Column(
+                children: [
+                  touchCanvasPanel,
+                  const SizedBox(height: 24),
+                  sidebarPanel,
+                ],
+              ),
+              tablet: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 11, child: touchCanvasPanel),
+                  const SizedBox(width: 20),
+                  Expanded(flex: 10, child: sidebarPanel),
+                ],
+              ),
+              desktop: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 12, child: touchCanvasPanel),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 10, child: sidebarPanel),
+                ],
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRefRow(String icon, String label, SmartBirthColors colors) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.bgSecondary,
+        border: Border.all(color: colors.chocolateBrown, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+                color: colors.chocolateBrown,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -326,6 +535,7 @@ class CervixCanvasPainter extends CustomPainter {
   final Offset? p1;
   final Offset? p2;
   final bool isMatched;
+  final SmartBirthColors colors;
 
   CervixCanvasPainter({
     required this.measuredCm,
@@ -333,6 +543,7 @@ class CervixCanvasPainter extends CustomPainter {
     required this.p1,
     required this.p2,
     required this.isMatched,
+    required this.colors,
   });
 
   @override
@@ -343,7 +554,7 @@ class CervixCanvasPainter extends CustomPainter {
 
     // Draw cervix tissues (outer area)
     final tissuePaint = Paint()
-      ..color = const Color(0xFFEF9595).withOpacity(0.3)
+      ..color = const Color(0xFFEF9595).withOpacity(0.35)
       ..style = PaintingStyle.fill;
     
     final radiusPx = (measuredCm * pixelsPerCm) / 2;
@@ -351,37 +562,51 @@ class CervixCanvasPainter extends CustomPainter {
 
     // Outer skin bounds border
     final tissueBorder = Paint()
-      ..color = kChocolateBrown
+      ..color = colors.chocolateBrown
       ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(Offset(centerX, centerY), radiusPx + 20, tissueBorder);
 
     // Inner open space orifice
     final orificePaint = Paint()
-      ..color = kBgPrimary
+      ..color = colors.bgPrimary
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(centerX, centerY), max(0, radiusPx), orificePaint);
     canvas.drawCircle(Offset(centerX, centerY), max(0, radiusPx), tissueBorder);
 
     // Target reference circle
     final targetPaint = Paint()
-      ..color = isMatched ? kSuccessGreen.withOpacity(0.4) : kPrimaryPink.withOpacity(0.3)
+      ..color = isMatched ? colors.successGreen.withOpacity(0.5) : colors.primaryPink.withOpacity(0.3)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(Offset(centerX, centerY), (targetCm * pixelsPerCm) / 2, targetPaint);
 
+    // Coins reference helper at 3cm
+    if (targetCm == 3) {
+      final coinPaint = Paint()
+        ..color = Colors.amber.withOpacity(0.08)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(centerX, centerY), (3 * pixelsPerCm) / 2, coinPaint);
+
+      final coinBorder = Paint()
+        ..color = Colors.amber.withOpacity(0.4)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+      _drawDashedCircle(canvas, Offset(centerX, centerY), (3 * pixelsPerCm) / 2, coinBorder);
+    }
+
     // Draw finger pointers and connecting line ruler
     if (p1 != null && p2 != null) {
       final linePaint = Paint()
-        ..color = isMatched ? kSuccessGreen : kPrimaryPink
+        ..color = isMatched ? colors.successGreen : colors.primaryPink
         ..strokeWidth = 4;
       canvas.drawLine(p1!, p2!, linePaint);
 
       final fingerPaint = Paint()
-        ..color = kPrimaryPink
+        ..color = colors.primaryPink
         ..style = PaintingStyle.fill;
       final fingerBorder = Paint()
-        ..color = kChocolateBrown
+        ..color = colors.chocolateBrown
         ..strokeWidth = 3
         ..style = PaintingStyle.stroke;
 
@@ -392,9 +617,66 @@ class CervixCanvasPainter extends CustomPainter {
       // Finger 2
       canvas.drawCircle(p2!, 18, fingerPaint);
       canvas.drawCircle(p2!, 18, fingerBorder);
+
+      // Mid-point measurement overlay text box
+      final midX = (p1!.dx + p2!.dx) / 2;
+      final midY = (p1!.dy + p2!.dy) / 2;
+
+      final textBgPaint = Paint()
+        ..color = colors.bgSecondary
+        ..style = PaintingStyle.fill;
+      final textBorderPaint = Paint()
+        ..color = colors.chocolateBrown
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke;
+
+      final rect = Rect.fromCenter(center: Offset(midX, midY), width: 72, height: 28);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(8)), textBgPaint);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(8)), textBorderPaint);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${measuredCm.toStringAsFixed(1)} ซม.',
+          style: TextStyle(
+            color: colors.chocolateBrown,
+            fontSize: 11,
+            fontFamily: 'Courier New',
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(midX - textPainter.width / 2, midY - textPainter.height / 2));
+    }
+  }
+
+  void _drawDashedCircle(Canvas canvas, Offset center, double radius, Paint paint) {
+    const double dashWidth = 5.0;
+    const double dashSpace = 4.0;
+    double startAngle = 0.0;
+    final double perimeter = 2 * pi * radius;
+    final int dashCount = (perimeter / (dashWidth + dashSpace)).floor();
+
+    for (int i = 0; i < dashCount; i++) {
+      final double angle = startAngle + (i * (dashWidth + dashSpace) / radius);
+      final double sweep = dashWidth / radius;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        angle,
+        sweep,
+        false,
+        paint,
+      );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CervixCanvasPainter oldDelegate) =>
+      oldDelegate.measuredCm != measuredCm ||
+      oldDelegate.targetCm != targetCm ||
+      oldDelegate.p1 != p1 ||
+      oldDelegate.p2 != p2 ||
+      oldDelegate.isMatched != isMatched ||
+      oldDelegate.colors != colors;
 }

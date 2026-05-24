@@ -5,6 +5,18 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../theme.dart';
 import '../main.dart';
 
+class FetalMovementStep {
+  final String title;
+  final String desc;
+  final List<String> notes;
+
+  const FetalMovementStep({
+    required this.title,
+    required this.desc,
+    required this.notes,
+  });
+}
+
 class MechanismPage extends ConsumerStatefulWidget {
   const MechanismPage({super.key});
 
@@ -17,15 +29,71 @@ class _MechanismPageState extends ConsumerState<MechanismPage> {
   double _sliderValue = 0.0;
   bool _isLoaded = false;
 
-  final List<String> _stages = [
-    "0. Pre-Engagement (ศีรษะเหนือบ่ากระดูก)",
-    "1. Engagement (เข้าสู่อุ้งเชิงกราน)",
-    "2. Descent (เคลื่อนต่ำลงเรื่อยๆ)",
-    "3. Flexion (ก้มศีรษะคางชิดหน้าอก)",
-    "4. Internal Rotation (หมุนหัวในแนวหน้าหลัง)",
-    "5. Extension (เงยศีรษะลอดพ้นช่อง)",
-    "6. External Rotation (หมุนตัวคลายบ่า)",
-    "7. Expulsion (ทำคลอดไหล่และตัวเด็ก)"
+  final List<FetalMovementStep> _stages = const [
+    FetalMovementStep(
+      title: 'การเตรียมตัวเข้าสู่เชิงกราน (Pre-Engagement) 🤰',
+      desc: 'ศีรษะของทารกลอยอยู่เหนือขอบทางเข้าของอุ้งเชิงกราน (Pelvic Inlet) โดยปกติแล้วศีรษะทารกจะหันไปทางด้านข้างของช่องเชิงกรานมารดา (Occiput Transverse)',
+      notes: [
+        'ความสูงของศีรษะทารก (Sagittal suture) ยังอยู่สูงเหนือกึ่งกลางโพรงเชิงกราน',
+        'แนวรอยต่อกะโหลกศีรษะ (Sagittal suture) อยู่ในแนวขวางหรือแนวเฉียง'
+      ],
+    ),
+    FetalMovementStep(
+      title: '1. ศีรษะเข้าสู่เชิงกราน (Engagement) 🎯',
+      desc: 'เส้นผ่านศูนย์กลางกว้างสุดของศีรษะทารก (Biparietal diameter) เคลื่อนผ่านขอบทางเข้าของอุ้งเชิงกรานเข้ามาในโพรงเชิงกราน ศีรษะมักจะยังคงหันในแนวขวาง',
+      notes: [
+        'ระดับศีรษะทารกเคลื่อนลงมาถึงตำแหน่งของปุ่ม ischial spines (เรียกว่า Station 0)',
+        'การมี Engagement เป็นการส่งสัญญาณที่ดีว่าขนาดศีรษะทารกและทางเข้าเชิงกรานมารดามีสัดส่วนที่เข้ากันได้'
+      ],
+    ),
+    FetalMovementStep(
+      title: '2. ศีรษะเคลื่อนต่ำลง (Descent) ⬇️',
+      desc: 'ศีรษะและตัวทารกเคลื่อนต่ำลงไปตามช่องคลอดเรื่อยๆ ภายใต้แรงบีบตัวของกล้ามเนื้อมดลูกและการออกแรงเบ่งอย่างสม่ำเสมอของมารดา',
+      notes: [
+        'เกิดขึ้นอย่างต่อเนื่องตั้งแต่ระยะปากมดลูกเปิดจนกระทั่งทารกคลอดเสร็จสิ้น',
+        'ประเมินระดับความต่ำเป็นหน่วย Station ที่เป็นค่าบวก (+1 ถึง +5)'
+      ],
+    ),
+    FetalMovementStep(
+      title: '3. ศีรษะก้ม (Flexion) 🔀',
+      desc: 'ในขณะที่ศีรษะเคลื่อนต่ำลงไป จะพบกับแรงต้านจากผนังช่องคลอดและพื้นเชิงกราน ทำให้ศีรษะก้มลงโดยอัตโนมัติจนคางชิดหน้าอกทารก',
+      notes: [
+        'การก้มช่วยปรับเอาเส้นผ่านศูนย์กลางศีรษะส่วนที่แคบที่สุด (Suboccipitobregmatic, ~9.5 ซม.) เพื่อนำทางผ่านช่องคลอด',
+        'เป็นขั้นตอนสำคัญในการลดการใช้เนื้อที่ทางผ่านเพื่อให้คลอดง่ายขึ้น'
+      ],
+    ),
+    FetalMovementStep(
+      title: '4. ศีรษะหมุนภายใน (Internal Rotation) 🔄',
+      desc: 'ศีรษะของทารกจะหมุนปรับตำแหน่งภายในช่องคลอดประมาณ 90 องศา จากแนวขวางมาอยู่ในแนวหน้าหลัง (Occiput Anterior) เพื่อหันส่วนท้ายทอยมาขัดอยู่ใต้กระดูกหัวหน่าวมารดา',
+      notes: [
+        'ปรับแนวศีรษะทารกให้สอดรับกับความกว้างแนวหน้าหลังของช่องทางออกเชิงกราน',
+        'รอยต่อกะโหลกศีรษะทารก (Sagittal suture) เปลี่ยนจากแนวนอนขวางเป็นแนวตั้งหน้าหลัง'
+      ],
+    ),
+    FetalMovementStep(
+      title: '5. ศีรษะเงย (Extension) ↗️',
+      desc: 'เมื่อศีรษะท้ายทอยขัดแน่นใต้กระดูกหัวหน่าวมารดา (Symphysis pubis) เป็นจุดหมุน ศีรษะทารกจะก้มต่อไปไม่ได้ จึงเริ่มเงยขึ้นตามมุมโค้งทางออกของช่องคลอด หน้าผาก หน้า และคางจะค่อยๆ ไหลผ่านพ้นฝีเย็บออกมา',
+      notes: [
+        'ศีรษะของทารกโผล่พ้นช่องคลอดออกมาภายนอกอย่างสมบูรณ์',
+        'ผู้ทำคลอดต้องประคองศีรษะและควบคุมแรงเบ่งในขั้นตอนนี้ให้ค่อยเป็นค่อยไปเพื่อรักษาและป้องกันแผลฝีเย็บฉีกขาด'
+      ],
+    ),
+    FetalMovementStep(
+      title: '6. ศีรษะสะบัดกลับและหมุนภายนอก (Restitution & External Rotation) ↩️',
+      desc: 'เมื่อศีรษะคลอดพ้นมาแล้ว ศีรษะจะหมุนกลับไปแนวขวางธรรมชาติ (Restitution) เพื่อคลายการบิดตัวของลำคอ จากนั้นจะหมุนภายนอกเพิ่มอีกเพื่อช่วยประคองให้ไหล่ทารกที่อยู่ด้านในหมุนตัวเข้าสู่แนวหน้าหลังเตรียมคลอดไหล่',
+      notes: [
+        'Restitution: ศีรษะทารกสะบัดกลับไปตั้งฉากกับแนวบ่าของเด็กเอง',
+        'External Rotation: เป็นปฏิกิริยาต่อเนื่องจากการหมุนแนวไหล่ของทารกภายในเชิงกรานเข้าหาแนวดิ่งหน้าหลัง'
+      ],
+    ),
+    FetalMovementStep(
+      title: '7. การคลอดไหล่และลำตัว (Expulsion) 👶🎉',
+      desc: 'ทำคลอดไหล่บนโดยโน้มศีรษะทารกลงด้านล่างเบาๆ เพื่อให้ไหล่บนลอดพ้นกระดูกหัวหน่าวมารดา จากนั้นดึงยกศีรษะทารกขึ้นด้านบนเพื่อทำคลอดไหล่ล่างตามลำดับ เมื่อคลอดไหล่ทั้งสองข้างได้แล้ว ลำตัวและขาจะคลอดตามออกมาอย่างรวดเร็ว',
+      notes: [
+        'เป็นจุดสิ้นสุดของกระบวนการคลอดทารก',
+        'แพทย์หรือพยาบาลทำคลอดจะประคองตัวทารกขึ้นขนานไปตามสรีระความโค้งทางช่องคลอดมารดา'
+      ],
+    ),
   ];
 
   @override
@@ -150,14 +218,37 @@ class _MechanismPageState extends ConsumerState<MechanismPage> {
                             style: TextStyle(fontSize: 10, color: colors.primaryPink, fontWeight: FontWeight.w900),
                           ),
                           Text(
-                            _stages[activeStageIndex],
+                            _stages[activeStageIndex].title,
                             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: colors.chocolateBrown),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Text(
-                            'ศึกษาระดับการเบียดหัวเด็กและศีรษะก้มขัดใต้หัวหน่าว เพื่อเข้าใจมุมของเด็กขณะลอดช่องคลอดของกระดูกอุ้งเชิงกราน',
+                            _stages[activeStageIndex].desc,
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textSecondary),
                           ),
+                          const SizedBox(height: 12),
+                          const Divider(),
+                          const SizedBox(height: 12),
+                          Text(
+                            '💡 บันทึกความรู้ทางคลินิก:',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: colors.chocolateBrown),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._stages[activeStageIndex].notes.map((note) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: colors.chocolateBrown)),
+                                Expanded(
+                                  child: Text(
+                                    note,
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.textSecondary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )).toList(),
                         ],
                       ),
                     ),

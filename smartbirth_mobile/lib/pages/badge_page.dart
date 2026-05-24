@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../theme.dart';
 import '../main.dart';
+import '../utils/print_stub.dart' if (dart.library.js) '../utils/print_web.dart';
 
 class BadgePage extends ConsumerStatefulWidget {
   const BadgePage({super.key});
@@ -30,16 +31,26 @@ class _BadgePageState extends ConsumerState<BadgePage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(smartBirthStateProvider);
-    
+    final colors = Theme.of(context).extension<SmartBirthColors>() ?? warmColors;
+
     // Check if 5 stages are complete
     final stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5'];
     final completedCount = stages.where((s) => state.completedStages[s] == true).length;
     final isReady = completedCount == stages.length;
 
+    // Thai Date formatter
+    final today = DateTime.now();
+    final List<String> months = [
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    final dateText = '${today.day} ${months[today.month - 1]} ${today.year + 543}';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ใบรับรองความความพร้อม Pre-VR Ready', style: TextStyle(fontWeight: FontWeight.w900)),
-        backgroundColor: kBgSecondary,
+        title: const Text('ใบรับรองความพร้อม Pre-VR Ready', style: TextStyle(fontWeight: FontWeight.w900)),
+        backgroundColor: colors.bgSecondary,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -50,103 +61,238 @@ class _BadgePageState extends ConsumerState<BadgePage> {
               children: [
                 NeobrutalistButton(
                   onTap: () => context.go('/dashboard'),
-                  child: const Text('🏠 กลับหน้าหลัก'),
+                  child: Text(
+                    '🏠 กลับหน้าหลัก',
+                    style: TextStyle(fontWeight: FontWeight.w900, color: colors.chocolateBrown),
+                  ),
                 ),
                 NeobrutalistButton(
-                  backgroundColor: isReady ? kPrimaryPink : Colors.grey.shade400,
+                  backgroundColor: isReady ? colors.primaryPink : Colors.grey.shade400,
                   onTap: isReady
                       ? () {
-                          // Print pdf certificate action
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('กำลังเปิดกล่องพิมพ์ประกาศนียบัตร...')),
-                          );
+                          if (state.studentName.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('กรุณากรอกชื่อ-นามสกุลของคุณในช่องป้อนข้อมูลด้านบนก่อนทำการพิมพ์เกียรติบัตรครับ')),
+                            );
+                            return;
+                          }
+                          // Print certificate
+                          printDocument();
                         }
                       : () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('กรุณาผ่านการฝึกฝนให้ครบ 5 ด่านก่อนพิมพ์ใบประกาศฯ (สำเร็จแล้ว $completedCount/5)')),
                           );
                         },
-                  child: const Text('พิมพ์ใบรับรอง 🖨️', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                  child: Text(
+                    'พิมพ์ใบรับรอง 🖨️',
+                    style: TextStyle(
+                      color: isReady ? Colors.white : colors.chocolateBrown.withOpacity(0.5),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            // Badge Showcase Icon
+            // Pulsing golden badge card
             Center(
               child: Container(
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [kPrimaryPink, Colors.amber],
+                  gradient: LinearGradient(
+                    colors: [colors.primaryPink, Colors.amber],
                   ),
                   shape: BoxShape.circle,
-                  border: Border.all(color: kChocolateBrown, width: 4),
-                  boxShadow: const [
-                    BoxShadow(color: kChocolateBrown, offset: Offset(4, 4)),
+                  border: Border.all(color: colors.chocolateBrown, width: 4),
+                  boxShadow: [
+                    BoxShadow(color: colors.chocolateBrown, offset: const Offset(4, 4)),
                   ],
                 ),
                 alignment: Alignment.center,
-                child: const Text('🎓', style: TextStyle(fontSize: 64)),
+                child: const Text('🎓', style: TextStyle(fontSize: 60)),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Name Input
+            // Name input card
             NeobrutalistCard(
+              backgroundColor: colors.bgSecondary,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('กรอกชื่อ-นามสกุลผู้เข้ารับการฝึกอบรม', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text(
+                    'กรอกชื่อ-นามสกุลของคุณเพื่อลงนามเกียรติบัตร',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: colors.chocolateBrown),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _nameController,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: colors.chocolateBrown),
                     decoration: InputDecoration(
                       hintText: 'ชื่อ - นามสกุลของคุณ',
+                      hintStyle: TextStyle(color: colors.textSecondary.withOpacity(0.5)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: kChocolateBrown, width: 2),
+                        borderSide: BorderSide(color: colors.chocolateBrown, width: 2),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: kChocolateBrown, width: 2),
+                        borderSide: BorderSide(color: colors.chocolateBrown, width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colors.primaryPink, width: 2.5),
                       ),
                     ),
                     onChanged: (val) {
                       ref.read(smartBirthStateProvider.notifier).updateName(val);
                     },
                   ),
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      '*พิมพ์ชื่อของคุณเพื่ออัปเดตใบรับรองด้านล่างแบบเรียลไทม์',
+                      style: TextStyle(fontSize: 10, color: colors.textSecondary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Certificate Summary Box
+            // Printable Certificate Paper Card
             NeobrutalistCard(
-              backgroundColor: kBgTertiary,
-              child: Column(
-                children: [
-                  const Text(
-                    'ใบประกาศความพร้อมปฏิบัติการเสมือนจริง',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                  ),
-                  const Divider(color: kChocolateBrown, thickness: 2, height: 24),
-                  const Text('ขอรับรองว่าผู้ผ่านหลักสูตรวิทยากลไกจำลอง', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.studentName.isNotEmpty ? state.studentName : '[ กรุณากรอกชื่อของคุณด้านบน ]',
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: kPrimaryPink),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'ได้เรียนรู้และสะสมผลงานสำเร็จระดับ ${state.xp} XP ⭐ และ ${state.coins} เหรียญทอง 🪙 ผ่านทฤษฎีเครื่องมือ 3D pelvic simulation และทักษะสัมผัสกางนิ้วตามมาตรฐานวิชาชีพพยาบาล',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, height: 1.5),
-                  ),
-                ],
+              backgroundColor: colors.bgTertiary,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                decoration: BoxDecoration(
+                  color: colors.bgSecondary,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: colors.chocolateBrown, width: 1.5),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'ใบประกาศเกียรติคุณความพร้อมจำลองเสมือนจริง',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'SmartBirth Clinical Simulator',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        color: colors.chocolateBrown,
+                        fontFamily: 'Courier New',
+                      ),
+                    ),
+                    const Divider(color: Colors.grey, thickness: 1, height: 24),
+                    Text(
+                      'เอกสารรับรองฉบับนี้ออกไว้ให้เพื่อแสดงว่า',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colors.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.studentName.isNotEmpty ? state.studentName : '[ กรุณากรอกชื่อผู้รับใบรับรอง ]',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        color: colors.primaryPink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        'ได้ผ่านหลักสูตรและแบบประเมินความพร้อมแบบ Pre-VR โดยทำภารกิจสำเร็จสะสมคะแนน ${state.xp} XP ⭐ และรับรางวัล ${state.coins} เหรียญทอง 🪙 ครอบคลุมการจำแนกเครื่องมือทำคลอด กายวิภาคศาสตร์ การศึกษาสรีระกลไกการคลอด 3 มิติ ปรับเทียบพื้นที่กล้อง และประเมินประสาทสัมผัสการกางนิ้วตามเกณฑ์สากล',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: colors.chocolateBrown,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                    const Divider(color: Colors.grey, thickness: 1, height: 32),
+                    
+                    // Signature and Stamp footer
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Left Sign
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(width: 80, height: 1, color: colors.chocolateBrown),
+                              const SizedBox(height: 4),
+                              Text(
+                                'ดร. เอฟลิน แวนส์, MD 🩺',
+                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 9, color: colors.chocolateBrown),
+                              ),
+                              Text(
+                                'ผู้อำนวยการศูนย์จำลองสูติศาสตร์การแพทย์',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 7, color: colors.textSecondary, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Center Stamp
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: colors.primaryPink, width: 2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'VR READY\nผ่านการรับรอง',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: colors.primaryPink,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 8,
+                            ),
+                          ),
+                        ),
+
+                        // Right Date
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(width: 80, height: 1, color: colors.chocolateBrown),
+                              const SizedBox(height: 4),
+                              Text(
+                                dateText,
+                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 9, color: colors.chocolateBrown),
+                              ),
+                              Text(
+                                'วันที่ออกหนังสือรับรอง',
+                                style: TextStyle(fontSize: 7, color: colors.textSecondary, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
